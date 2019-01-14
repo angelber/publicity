@@ -1,0 +1,33 @@
+publicity.default_entity.*:
+  type: config_entity
+  label: 'Default entity config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    uuid:
+      type: string
+    url:
+      type: url
+      label: 'Url'
+    render_section: 
+      type: string
+      label: 'Viewing section'
+    width: 
+      type: integer
+      label: 'Custom Width'
+    height: 
+      type: integer
+      label: 'Custom Height'
+    device:
+      type: string
+      label: 'Type of Device'
+    id_publicity:
+      type: string
+      label: 'ID Publicity'
+
+
+

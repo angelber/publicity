@@ -1,0 +1,5 @@
+name: 'Publicity'
+type: module
+description: 'This module works to create custom adds when you whish it'
+core: 8.x
+package: 'Custom'
