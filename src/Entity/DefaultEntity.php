@@ -31,7 +31,9 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "url" = "url",
  *     "render_section" = "render_section",
  *     "width" = "width",
- *     "height" = "height"
+ *     "height" = "height",
+ *     "device"="device",
+ *     "measurement"="measurement"
  *   },
  *   links = {
  *     "canonical" = "/admin/structure/default_entity/{default_entity}",
@@ -87,5 +89,19 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    * @var string
    */
   protected $height;
+
+  /**
+   * The Default entity label.
+   *
+   * @var string
+   */
+  protected $device;
+  
+  /**
+   * The Default entity label.
+   *
+   * @var string
+   */
+  protected $measurement;
 }
 

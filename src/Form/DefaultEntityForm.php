@@ -50,10 +50,10 @@ class DefaultEntityForm extends EntityForm {
       '#type'=>'textfield',
       '#title'=>$this->t('ID Publicity'),
       '#default_value'=> $default_entity->get('id_publicity'),
-      '#placeholder'=>$this->t('Ej: XUY-146'),
+      '#placeholder'=>$this->t('Ej: XUY146'),
       '#required' => TRUE,
       '#element_validate'=>[
-        [$class, 'validateString'],
+        [$class, 'validateIdpublicity'],
       ],
     ];
     $form['render_section']=[
@@ -69,27 +69,46 @@ class DefaultEntityForm extends EntityForm {
       '#type' => 'fieldset',
       '#title' => $this->t('BREAKPOINTS'),
     ];
+    $form['breakpoints']['measurement']=[
+      '#type'=>'radios',
+      '#options'=> [
+        'Pixels','Percentage',
+      ],
+      '#ajax' => [
+        'callback' => '::configurationOptionsCallback',
+        'wrapper' => 'breakpoint-wrapper',
+        'event' => 'change',
+      ],
+    ];
     $form['breakpoints']['width'] = [
       '#type' => 'number',
       '#title' => $this->t('Width'),
-      '#placeholder'=>$this->t('Ej: 720px'),
+      '#description'=>$this->t('Ej: 720px'),
       '#default_value'=> $default_entity->get('width'),
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
-      '#min'=>1,
+      '#min'=>10,
+      '#max'=> 1999,
+      '#step' => 1,
       '#required' => TRUE,
+      '#prefix' => '<div id="breakpoint-wrapper">',
+      '#suffix' => '</div>',
     ];
     $form['breakpoints']['height']= [
       '#type' => 'number',
       '#title' => $this->t('Height'),
-      '#placeholder'=> $this->t('Ej: 1080px'),
+      '#description'=> $this->t('Ej: 1080px'),
       '#default_value'=> $default_entity->get('height'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
-      '#min'=>1,
+      '#step' => 1,
+      '#min'=>10,
+      '#max'=> 1999,
+      '#prefix' => '<div id="breakpoint-wrapper">',
+      '#suffix' => '</div>',
     ];
     $form['breakpoints']['device']=[
       '#type'=>'select',
@@ -149,11 +168,41 @@ class DefaultEntityForm extends EntityForm {
     $value = strtolower($value);
 
     if (!preg_match('/^[a-z]{3,15}$/', $value)) {
-      $form_state->setError($element, t('Has introducido un valor NO valido!'));
+      $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
     }
   }
+  public static function validateIdpublicity(){
+    $value = $element['#value'];
+    $value = strtolower($value);
 
+    if (!preg_match('/^[a-z0-9]{6}$/', $value)) {
+      $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
+    }
+  }
   /**
+   * {@inheritdoc}
+   */
+  public function configurationOptionsCallback(&$element, FormStateInterface $form_state){
+    switch ($form_state) {
+      case 'Pixels':
+        $description_width = 'Ej: 720px';
+        $description_height = 'Ej: 1080px';
+        $ajax_response->addCommand(new HtmlCommand('#edit-width--description', $description_width));
+        $ajax_response->addCommand(new HtmlCommand('#edit--height--description', $description_height));
+        break;
+      case 'Percentage':
+        $description_width = 'Ej: 70%';
+        $description_height = 'Ej: 70%';
+        $ajax_response->addCommand(new HtmlCommand('#edit-width--description', $description));
+        $ajax_response->addCommand(new HtmlCommand('#edit--height--description', $description));
+        break;
+      
+      default:
+        echo 'An unexpected error has occurred';
+        break;
+    }
+  }
+   /**
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {

@@ -28,6 +28,9 @@ publicity.default_entity.*:
     id_publicity:
       type: string
       label: 'ID Publicity'
+    measurement: 
+      type: string
+      label: 'Custom Measurement'  
 
 
 
