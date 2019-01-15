@@ -11,7 +11,7 @@ use Drupal\Core\Render\Element;
  * Class DefaultEntityForm.
  */
 class DefaultEntityForm extends EntityForm {
-
+    
   /**
    * {@inheritdoc}
    */
@@ -70,44 +70,100 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('BREAKPOINTS'),
     ];
     $form['breakpoints']['measurement']=[
+      '#id'=>'measurement',
       '#type'=>'radios',
       '#options'=> [
-        'Pixels','Percentage',
+        'pixels'=>t('Pixels'),
+        'percentage'=>t('Percentage'),
       ],
-      '#ajax' => [
-        'callback' => '::configurationOptionsCallback',
-        'wrapper' => 'breakpoint-wrapper',
-        'event' => 'change',
+      '#ajax'=>[
+        'callback'=> '::disabledFieldsCallback',
+        'wrapper'=>'breakpoints-wrapper',
+        'event'=>'change',
+        'progress'=>[
+          'type'=>'throbber',
+          'message'=>'Loading',
+        ],
       ],
+      '#default_value'=> $default_entity->get('measurement'), 
     ];
-    $form['breakpoints']['width'] = [
+    $form['breakpoints']['pixel_width'] = [
+      '#prefix' => '<div id="breakpoint-wrapper">',
+      '#id'=>'pixel-width', 
       '#type' => 'number',
       '#title' => $this->t('Width'),
-      '#description'=>$this->t('Ej: 720px'),
-      '#default_value'=> $default_entity->get('width'),
+      '#description'=> 'Example: 780px',
+      '#default_value'=> $default_entity->get('pixel_width'),
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
-      '#min'=>10,
+      '#states'=>[
+        'visible'=>[
+        ':input[name="measurement"]' =>['value'=>'pixels'],
+        ],
+      ],
+      '#min'=>100,
       '#max'=> 1999,
       '#step' => 1,
       '#required' => TRUE,
-      '#prefix' => '<div id="breakpoint-wrapper">',
-      '#suffix' => '</div>',
     ];
-    $form['breakpoints']['height']= [
+    $form['breakpoints']['percentage_width'] = [
+      '#id'=>'percentage-width',
+      '#type' => 'number',
+      '#title' => $this->t('Width'),
+      '#description'=> 'Example: 45%',
+      '#default_value'=> $default_entity->get('percentage_width'),
+      '#element_validate'=>[
+        [$class, 'validateNumber'],
+      ],
+      '#states'=>[
+        'visible'=>[
+          ':input[name="measurement"]'=>['value'=>'percentage'],
+        ],
+      ],
+      '#min'=>15,
+      '#max'=> 100,
+      '#step' => 1,
+      '#required' => TRUE,
+    ];
+    $form['breakpoints']['pixel_height']= [
+      
+      '#id'=>'pixel-height',
       '#type' => 'number',
       '#title' => $this->t('Height'),
-      '#description'=> $this->t('Ej: 1080px'),
-      '#default_value'=> $default_entity->get('height'),
+      '#description'=> 'Example: 1080px',
+      '#default_value'=> $default_entity->get('pixel_height'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
+      '#states'=>[
+        'visible'=>[
+          ':input[name="measurement"]'=>['value'=>'pixels'],
+        ],
+      ],
       '#step' => 1,
-      '#min'=>10,
+      '#min'=>100,
       '#max'=> 1999,
-      '#prefix' => '<div id="breakpoint-wrapper">',
+    ];
+     $form['breakpoints']['percentage_eight']= [
+      '#id'=>'percentage-height',
+      '#type' => 'number',
+      '#title' => $this->t('Height'),
+      '#description'=> 'Example: 70%',
+      '#default_value'=> $default_entity->get('percentage_eight'),
+      '#required' => TRUE,
+      '#element_validate'=>[
+        [$class, 'validateNumber'],
+      ],
+      '#states'=>[
+        'visible'=>[
+          ':input[name="measurement"]'=>['value'=>'percentage'],
+        ],
+      ],
+      '#step' => 1,
+      '#min'=>15,
+      '#max'=> 100,
       '#suffix' => '</div>',
     ];
     $form['breakpoints']['device']=[
@@ -126,6 +182,22 @@ class DefaultEntityForm extends EntityForm {
   /**
    * {@inheritdoc}
    */
+  public function disable_html5_validation_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  $form['#attributes']['novalidate'] = 'novalidate';
+  }
+  public static function disabledFieldsCallback(array $form, FormStateInterface $form_state,$form_id){
+    if(($form_state->getValue('pixel_heights'))>0){
+     $form['breakpoints']['percentage_eight']['#required']= FALSE;
+      $form['breakpoints']['percentage_width']['#required']= FALSE;
+    }elseif(($form_state->getValue('percentage_height'))>0){
+      $form['breakpoints']['pixel_height']['#required']= FALSE;
+      $form['breakpoints']['pixel_width']['#required']= FALSE;
+    }else{
+        echo 'An unexpected error has ocurred';
+    }
+    return $form;
+  }
+
   public static function validateNumber(&$element, FormStateInterface $form_state, &$complete_form) {
     $value = $element['#value'];
     if ($value === '') {
@@ -167,45 +239,23 @@ class DefaultEntityForm extends EntityForm {
    $value = $element['#value'];
     $value = strtolower($value);
 
-    if (!preg_match('/^[a-z]{3,15}$/', $value)) {
+    if (!preg_match('/^[a-z ]{3,15}$/', $value)) {
       $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
     }
   }
-  public static function validateIdpublicity(){
+  public static function validateIdpublicity(&$element, FormStateInterface $form_state, &$complete_form){
     $value = $element['#value'];
     $value = strtolower($value);
 
-    if (!preg_match('/^[a-z0-9]{6}$/', $value)) {
+    if (!preg_match('/^[a-z0-9]{6}$/', $value)){
       $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
     }
-  }
-  /**
-   * {@inheritdoc}
-   */
-  public function configurationOptionsCallback(&$element, FormStateInterface $form_state){
-    switch ($form_state) {
-      case 'Pixels':
-        $description_width = 'Ej: 720px';
-        $description_height = 'Ej: 1080px';
-        $ajax_response->addCommand(new HtmlCommand('#edit-width--description', $description_width));
-        $ajax_response->addCommand(new HtmlCommand('#edit--height--description', $description_height));
-        break;
-      case 'Percentage':
-        $description_width = 'Ej: 70%';
-        $description_height = 'Ej: 70%';
-        $ajax_response->addCommand(new HtmlCommand('#edit-width--description', $description));
-        $ajax_response->addCommand(new HtmlCommand('#edit--height--description', $description));
-        break;
-      
-      default:
-        echo 'An unexpected error has occurred';
-        break;
-    }
-  }
+  }  
    /**
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
+    /* var_dump($form_state->getValue('measurement')); die(); */
     $default_entity = $this->entity;
     $status = $default_entity->save();
     switch ($status) {

@@ -16,12 +16,18 @@ publicity.default_entity.*:
     render_section: 
       type: string
       label: 'Viewing section'
-    width: 
+    pixel_width: 
       type: integer
-      label: 'Custom Width'
-    height: 
+      label: 'Custom Pixel Width'
+    percentage_width:
+      type: integer
+      label: 'Custom Percentage Width'
+    pixel_height: 
       type: integer
       label: 'Custom Height'
+    percentage_eight:
+      type: integer
+      label: 'Custom Percentage Height'
     device:
       type: string
       label: 'Type of Device'
@@ -31,6 +37,7 @@ publicity.default_entity.*:
     measurement: 
       type: string
       label: 'Custom Measurement'  
+
 
 
 

@@ -30,8 +30,10 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "uuid" = "uuid",
  *     "url" = "url",
  *     "render_section" = "render_section",
- *     "width" = "width",
- *     "height" = "height",
+ *     "width" = "pixel_width",
+ *     "height" = "pixel_height",
+ *      "percentage_width" = "percentage_width",
+ *     "percentage_eight" = "percentage_eight",
  *     "device"="device",
  *     "measurement"="measurement"
  *   },
@@ -72,7 +74,7 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
   /**
    * The Default entity label.
    *
-   * @var integer
+   * @var string
    */
   protected $render_section;
 
@@ -81,19 +83,34 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @var string
    */
-  protected $width;
+  protected $pixel_width;
 
   /**
    * The Default entity label.
    *
-   * @var string
+   * @var integer
    */
-  protected $height;
+  protected $pixel_height;
 
   /**
    * The Default entity label.
    *
-   * @var string
+   * @var integer
+   */
+  protected $percentage_width;
+
+  /**
+   * The Default entity label.
+   *
+   * @var integer
+   */
+  protected $percentage_eight;
+
+
+  /**
+   * The Default entity label.
+   *
+   * @var integer
    */
   protected $device;
   
