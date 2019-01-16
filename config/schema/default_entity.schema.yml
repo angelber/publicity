@@ -16,27 +16,32 @@ publicity.default_entity.*:
     render_section: 
       type: string
       label: 'Viewing section'
-    pixel_width: 
-      type: integer
-      label: 'Custom Pixel Width'
-    percentage_width:
-      type: integer
-      label: 'Custom Percentage Width'
-    pixel_height: 
-      type: integer
-      label: 'Custom Height'
-    percentage_eight:
-      type: integer
-      label: 'Custom Percentage Height'
-    device:
-      type: string
-      label: 'Type of Device'
+    # pixel_width: 
+    #   type: string
+    #   label: 'Custom Pixel Width'
+    # percentage_width:
+    #   type: string
+    #   label: 'Custom Percentage Width'
+    # pixel_height: 
+    #   type: string
+    #   label: 'Custom Height'
+    # percentage_eight:
+    #   type: string
+    #   label: 'Custom Percentage Height'
+    # device:
+    #   type: string
+    #   label: 'Type of Device'
     id_publicity:
       type: string
       label: 'ID Publicity'
-    measurement: 
+    # measurement: 
+    #   type: string
+    #   label: 'Custom Measurement'  
+    breakpoints:
       type: string
-      label: 'Custom Measurement'  
+      label: 'Breakpoints'  
+
+
 
 
 

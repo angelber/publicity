@@ -28,14 +28,7 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid",
- *     "url" = "url",
- *     "render_section" = "render_section",
- *     "width" = "pixel_width",
- *     "height" = "pixel_height",
- *      "percentage_width" = "percentage_width",
- *     "percentage_eight" = "percentage_eight",
- *     "device"="device",
- *     "measurement"="measurement"
+ *     "url" = "url"
  *   },
  *   links = {
  *     "canonical" = "/admin/structure/default_entity/{default_entity}",
@@ -53,14 +46,14 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @var string
    */
-  protected $id;
+  public $id;
 
   /**
    * The Default entity label.
    *
    * @var string
    */
-  protected $label;
+  public $label;
 
 
   /**
@@ -68,7 +61,7 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @var url
    */
-  protected $url;
+  public $url;
 
 
   /**
@@ -76,49 +69,75 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @var string
    */
-  protected $render_section;
+  public $render_section;
+
+   /**
+   * The Default entity label.
+   *
+   * @var string
+   */
+  public $id_publicity;
 
   /**
    * The Default entity label.
    *
    * @var string
    */
-  protected $pixel_width;
+  public $measurement;
 
-  /**
-   * The Default entity label.
-   *
-   * @var integer
-   */
-  protected $pixel_height;
-
-  /**
-   * The Default entity label.
-   *
-   * @var integer
-   */
-  protected $percentage_width;
-
-  /**
-   * The Default entity label.
-   *
-   * @var integer
-   */
-  protected $percentage_eight;
-
-
-  /**
-   * The Default entity label.
-   *
-   * @var integer
-   */
-  protected $device;
-  
-  /**
+   /**
    * The Default entity label.
    *
    * @var string
    */
-  protected $measurement;
+  public $percentagewidth;
+
+ /**
+   * The Advertising entity breakpoints.
+   *
+   * @var array
+   */
+  public $breakpoints;
+
+  /**
+   * Set the default place to put an AD.
+   *
+   * @param string $place
+   *   The place to set.
+   *
+   * @return string
+   */
+  public function setPlace($place) {
+    return $this->set('place', $place);
+  }
+  /**
+   * Get the default place to put an AD.
+   *
+   * @return string
+   */
+  public function getPlace() {
+    return $this->get('render_section');
+  }
+  /**
+   * Set the default breakpoints.
+   *
+   * @param string $breakpoints
+   *   The breakpoints to set.
+   *
+   * @return string
+   */
+  public function setBreakpoints($breakpoints) {
+    $serializer = \Drupal::service('serialization.phpserialize');
+    $this->breakpoints = $serializer->encode($breakpoints);
+  }
+  /**
+   * Get the breakpoints.
+   *
+   * @return string
+   */
+  public function getBreakpoints() {
+    $serializer = \Drupal::service('serialization.phpserialize');
+    return $serializer->decode($this->breakpoints);
+  }
 }
 
