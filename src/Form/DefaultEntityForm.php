@@ -63,6 +63,7 @@ class DefaultEntityForm extends EntityForm {
       '#maxlength' => 255,
       '#default_value' => $default_entity->label(),
       '#description' => $this->t("Name for the Advertising entity."),
+      '#placeholder'=>t('Configuration Entity Name'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateString'],
@@ -81,6 +82,7 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('Url'),
       '#default_value' => $default_entity->url,
       '#description' => $this->t('The Url of AD'),
+      '#placeholder'=>t('https://yourwebsite.com'),
       '#required' => TRUE,
     ];
     $form['id_publicity'] = [
@@ -89,6 +91,7 @@ class DefaultEntityForm extends EntityForm {
       '#maxlength' => 255,
       '#default_value' => $default_entity->id_publicity,
       '#description' => $this->t('The unique id of each AD'),
+      '#placeholder'=>t('Example: WPX992'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateIdpublicity'],
@@ -115,11 +118,6 @@ class DefaultEntityForm extends EntityForm {
         'pixel'=>$this->t('Pixel'),
         'percentage'=>$this->t('Percentage'),
         ],
-   /*    '#ajax'=>[
-        'callback' => '::disableField',
-        'wrapper'=> $this->fields,
-        'effect'=>'fade',
-        ], */
       ];
     $form['breakpoints'] = [
       '#type' => 'fieldset',
@@ -160,6 +158,9 @@ class DefaultEntityForm extends EntityForm {
           ':input[name="measurement"]' => ['value' => 'pixel'],
           ],
         ],
+        '#element_validate'=>[
+          [$class, 'validateNumber'],
+        ],
       ];
   
       $form['breakpoints']['form'][$delta]['pixelheight'] = [
@@ -177,6 +178,9 @@ class DefaultEntityForm extends EntityForm {
           ':input[name="measurement"]' => ['value' => 'pixel'],
           ],
         ],
+        '#element_validate'=>[
+          [$class, 'validateNumber'],
+        ],
       ];
         $form['breakpoints']['form'][$delta]['percentagewidth'] = [
         '#type' => 'number',
@@ -193,6 +197,9 @@ class DefaultEntityForm extends EntityForm {
           ':input[name="measurement"]' => ['value' => 'percentage'],
           ],
         ],
+        '#element_validate'=>[
+          [$class, 'validateNumber'],
+        ],
       ];
   
       $form['breakpoints']['form'][$delta]['percentageheight'] = [
@@ -203,12 +210,15 @@ class DefaultEntityForm extends EntityForm {
         '#default_value' => $width['form'][$delta]['percentageheight'],
         '#description' => $this->t('Example: 75%'),
         '#step' => 1,
-        '#min'=>14,
+        '#min'=>15,
         '#max'=> 99,
         '#states' => [
         'visible' => [
           ':input[name="measurement"]' => ['value' => 'percentage'],
           ],
+        ],
+        '#element_validate'=>[
+        [$class, 'validateNumber'],
         ],
       ];
   
@@ -348,7 +358,7 @@ class DefaultEntityForm extends EntityForm {
     $value = $element['#value'];
     $value = strtolower($value);
     if (!preg_match('/^[a-z0-9]{6}$/', $value)){
-      $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 6'));
+      $form_state->setError($element, t('Please. Write only data type string. Three Numbers and three characters (WXY457)'));
     }
   }  
   /**

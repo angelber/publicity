@@ -37,6 +37,9 @@ publicity.default_entity.*:
     # measurement: 
     #   type: string
     #   label: 'Custom Measurement'  
+    measurement:
+      type: string 
+      label: 'Custom Measurement'
     breakpoints:
       type: string
       label: 'Breakpoints'  
