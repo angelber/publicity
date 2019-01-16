@@ -19,7 +19,7 @@ class DefaultEntityForm extends EntityForm {
     $form = parent::form($form, $form_state);
     $default_entity = $this->entity;
     $class = get_class($this);
-    /*var_dump($fields); die();*/
+    
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Name'),
@@ -50,7 +50,7 @@ class DefaultEntityForm extends EntityForm {
       '#type'=>'textfield',
       '#title'=>$this->t('ID Publicity'),
       '#default_value'=> $default_entity->get('id_publicity'),
-      '#placeholder'=>$this->t('Ej: XUY146'),
+      '#placeholder'=>$this->t('Example: XUA146'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateIdpublicity'],
@@ -76,19 +76,9 @@ class DefaultEntityForm extends EntityForm {
         'pixels'=>t('Pixels'),
         'percentage'=>t('Percentage'),
       ],
-      '#ajax'=>[
-        'callback'=> '::disabledFieldsCallback',
-        'wrapper'=>'breakpoints-wrapper',
-        'event'=>'change',
-        'progress'=>[
-          'type'=>'throbber',
-          'message'=>'Loading',
-        ],
-      ],
       '#default_value'=> $default_entity->get('measurement'), 
     ];
     $form['breakpoints']['pixel_width'] = [
-      '#prefix' => '<div id="breakpoint-wrapper">',
       '#id'=>'pixel-width', 
       '#type' => 'number',
       '#title' => $this->t('Width'),
@@ -105,7 +95,6 @@ class DefaultEntityForm extends EntityForm {
       '#min'=>100,
       '#max'=> 1999,
       '#step' => 1,
-      '#required' => TRUE,
     ];
     $form['breakpoints']['percentage_width'] = [
       '#id'=>'percentage-width',
@@ -124,7 +113,6 @@ class DefaultEntityForm extends EntityForm {
       '#min'=>15,
       '#max'=> 100,
       '#step' => 1,
-      '#required' => TRUE,
     ];
     $form['breakpoints']['pixel_height']= [
       
@@ -133,7 +121,6 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('Height'),
       '#description'=> 'Example: 1080px',
       '#default_value'=> $default_entity->get('pixel_height'),
-      '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
@@ -152,7 +139,6 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('Height'),
       '#description'=> 'Example: 70%',
       '#default_value'=> $default_entity->get('percentage_eight'),
-      '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateNumber'],
       ],
@@ -164,7 +150,6 @@ class DefaultEntityForm extends EntityForm {
       '#step' => 1,
       '#min'=>15,
       '#max'=> 100,
-      '#suffix' => '</div>',
     ];
     $form['breakpoints']['device']=[
       '#type'=>'select',
@@ -180,25 +165,28 @@ class DefaultEntityForm extends EntityForm {
     return $form;
   }
   /**
-   * {@inheritdoc}
+   * it disabled the html5 validation through form_alter
+   * 
+   * @access public
+   * @param string $form Form data
+   * @param object $form_state contains the fields data submitted by the user
+   * @param string form_id stores the form identification
+   * @return $form New form with disabled html5 validation. 
+   * 
    */
   public function disable_html5_validation_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   $form['#attributes']['novalidate'] = 'novalidate';
   }
-  public static function disabledFieldsCallback(array $form, FormStateInterface $form_state,$form_id){
-    if(($form_state->getValue('pixel_heights'))>0){
-     $form['breakpoints']['percentage_eight']['#required']= FALSE;
-      $form['breakpoints']['percentage_width']['#required']= FALSE;
-    }elseif(($form_state->getValue('percentage_height'))>0){
-      $form['breakpoints']['pixel_height']['#required']= FALSE;
-      $form['breakpoints']['pixel_width']['#required']= FALSE;
-    }else{
-        echo 'An unexpected error has ocurred';
-    }
-    return $form;
-  }
-
-  public static function validateNumber(&$element, FormStateInterface $form_state, &$complete_form) {
+  /**
+   * Form element validation handler for #type 'number'.
+   *
+   * @access public
+   * @param array $element Provides helper methods for Drupal render elements.
+   * @param object $form_state Contains the fields data submitted by the user
+   * @param array $complete_form The complete form structure.
+   * 
+   */
+    public static function validateNumber(&$element, FormStateInterface $form_state, &$complete_form) {
     $value = $element['#value'];
     if ($value === '') {
       return;
@@ -231,9 +219,15 @@ class DefaultEntityForm extends EntityForm {
         $form_state->setError($element, t('%name is not a valid number.', ['%name' => $name]));
       }
     }
-  }
+  } 
   /**
-   * {@inheritdoc}
+   * Helps to validate a fieldtext. It only allows string characters
+   * 
+   * @access public
+   * @param array $element Provides helper methods for Drupal render elements.
+   * @param object $form_state Contains the fields data submitted by the user
+   * @param array $complete_form The complete form structure.
+   * 
    */
   public static function validateString(&$element, FormStateInterface $form_state, &$complete_form) {
    $value = $element['#value'];
@@ -243,6 +237,15 @@ class DefaultEntityForm extends EntityForm {
       $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
     }
   }
+  /**
+   * This function validates the pubicity id 
+   * 
+   * @access public
+   * @param array $element Provides helper methods for Drupal render elements.
+   * @param object $form_state Contains the fields data submitted by the user
+   * @param array $complete_form The complete form structure.
+   * 
+   */
   public static function validateIdpublicity(&$element, FormStateInterface $form_state, &$complete_form){
     $value = $element['#value'];
     $value = strtolower($value);
