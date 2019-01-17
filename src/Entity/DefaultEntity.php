@@ -85,13 +85,6 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    */
   public $measurement;
 
-   /**
-   * The Default entity label.
-   *
-   * @var string
-   */
-  public $percentagewidth;
-
  /**
    * The Advertising entity breakpoints.
    *

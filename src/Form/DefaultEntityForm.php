@@ -1,13 +1,15 @@
 <?php
 namespace Drupal\publicity\Form;
+
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Number as NumberUtility;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Form\FormBase;
 /**
- * Class AdvertisingEntityForm.
+ * Class DefaultEntityForm.
  */
 class DefaultEntityForm extends EntityForm {
   /**
@@ -18,11 +20,11 @@ class DefaultEntityForm extends EntityForm {
    * @var $connection Drupal\Core\Database\Connection
    */
   protected $connection;
-
-   /**
+  /**
    * @var $connection Drupal\Core\Database\Connection
    */
-  protected $fields;
+  protected $delta;
+
   /**
    * Class construct
    * 
@@ -52,6 +54,7 @@ class DefaultEntityForm extends EntityForm {
     $form = parent::form($form, $form_state);
     $default_entity = $this->entity;
     $class = get_class($this);
+    $form['#attributes']['novalidate'] = 'novalidate';
     // Disable caching for the form
     $form['#cache'] = ['max-age' => 0];
     
@@ -62,7 +65,6 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('Name'),
       '#maxlength' => 255,
       '#default_value' => $default_entity->label(),
-      '#description' => $this->t("Name for the Advertising entity."),
       '#placeholder'=>t('Configuration Entity Name'),
       '#required' => TRUE,
       '#element_validate'=>[
@@ -81,7 +83,6 @@ class DefaultEntityForm extends EntityForm {
       '#type' => 'url',
       '#title' => $this->t('Url'),
       '#default_value' => $default_entity->url,
-      '#description' => $this->t('The Url of AD'),
       '#placeholder'=>t('https://yourwebsite.com'),
       '#required' => TRUE,
     ];
@@ -90,7 +91,6 @@ class DefaultEntityForm extends EntityForm {
       '#title' => $this->t('ID'),
       '#maxlength' => 255,
       '#default_value' => $default_entity->id_publicity,
-      '#description' => $this->t('The unique id of each AD'),
       '#placeholder'=>t('Example: WPX992'),
       '#required' => TRUE,
       '#element_validate'=>[
@@ -118,6 +118,7 @@ class DefaultEntityForm extends EntityForm {
         'pixel'=>$this->t('Pixel'),
         'percentage'=>$this->t('Percentage'),
         ],
+      '#required'=>TRUE,
       ];
     $form['breakpoints'] = [
       '#type' => 'fieldset',
@@ -138,6 +139,7 @@ class DefaultEntityForm extends EntityForm {
     $field_count = $form_state->get('field_deltas');
   
     foreach ($field_count as $delta) {
+      $this->delta = $delta;
       $form['breakpoints']['form'][$delta] = [
         '#type' => 'fieldset',
         '#title' => $this->t('RESPONSIVE DESIGN'),
@@ -147,14 +149,16 @@ class DefaultEntityForm extends EntityForm {
         '#type' => 'number',
         '#title' => 'Width', 
         '#min' => 1,
-        '#required' => TRUE,
         '#default_value' => $width['form'][$delta]['pixelwidth'],
         '#description' => $this->t('Example: 350 px'),
-        '#min'=>100,
+        '#min'=>1,
         '#max'=> 1999,
         '#step' => 1,
         '#states' => [
           'visible' => [
+          ':input[name="measurement"]' => ['value' => 'pixel'],
+          ],
+          'required' => [
           ':input[name="measurement"]' => ['value' => 'pixel'],
           ],
         ],
@@ -162,38 +166,43 @@ class DefaultEntityForm extends EntityForm {
           [$class, 'validateNumber'],
         ],
       ];
-  
+      ;
       $form['breakpoints']['form'][$delta]['pixelheight'] = [
         '#type' => 'number',
         '#title' => 'Height', 
         '#min' => 1,
-        '#required' => TRUE,
         '#default_value' => $width['form'][$delta]['pixelheight'],
         '#description' => $this->t('Example: 750px'),
         '#step' => 1,
-        '#min'=>100,
+        '#min'=>1,
         '#max'=> 1999,
         '#states' => [
         'visible' => [
           ':input[name="measurement"]' => ['value' => 'pixel'],
           ],
+          'required' => [
+          ':input[name="measurement"]' => ['value' => 'pixel'],
+          ],
         ],
         '#element_validate'=>[
           [$class, 'validateNumber'],
         ],
       ];
+      
         $form['breakpoints']['form'][$delta]['percentagewidth'] = [
         '#type' => 'number',
         '#title' => 'Width', 
         '#min' => 1,
-        '#required' => TRUE,
         '#default_value' => $width['form'][$delta]['percentagewidth'],
         '#description' => $this->t('Example: 35%'),
-        '#min'=>15,
+        '#min'=>1,
         '#max'=> 99,
         '#step' => 1,
         '#states' => [
           'visible' => [
+          ':input[name="measurement"]' => ['value' => 'percentage'],
+          ],
+          'required' => [
           ':input[name="measurement"]' => ['value' => 'percentage'],
           ],
         ],
@@ -201,19 +210,21 @@ class DefaultEntityForm extends EntityForm {
           [$class, 'validateNumber'],
         ],
       ];
-  
+      
       $form['breakpoints']['form'][$delta]['percentageheight'] = [
         '#type' => 'number',
         '#title' => 'Height', 
         '#min' => 1,
-        '#required' => TRUE,
         '#default_value' => $width['form'][$delta]['percentageheight'],
         '#description' => $this->t('Example: 75%'),
         '#step' => 1,
-        '#min'=>15,
+        '#min'=>1,
         '#max'=> 99,
         '#states' => [
         'visible' => [
+          ':input[name="measurement"]' => ['value' => 'percentage'],
+          ],
+          'required' => [
           ':input[name="measurement"]' => ['value' => 'percentage'],
           ],
         ],
@@ -221,7 +232,23 @@ class DefaultEntityForm extends EntityForm {
         [$class, 'validateNumber'],
         ],
       ];
-  
+      $form['breakpoints']['form'][$delta]['device']=[
+        '#type'=>'select',
+        '#options'=>[
+          'Desktop','Mobile','Tablet',
+        ],
+        '#empty_option'=>'Devices',
+        '#description'=> $this->t('Choose a device for your configuration'),
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['checked'=>TRUE],
+          ],
+          'required' => [
+          ':input[name="measurement"]' => ['value' => 'pixel'],
+          ],
+        ],
+        '#default_value'=> $width['form'][$delta]['device'],
+      ];
       $form['breakpoints']['form'][$delta]['remove'] = [
         '#type' => 'submit',
         '#value' => $this->t('Remove'),
@@ -231,6 +258,11 @@ class DefaultEntityForm extends EntityForm {
           'wrapper' => 'breakpoint-wrapper',
         ],
         '#name' => 'remove_name_' . $delta,
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['checked'=>TRUE]
+          ]
+        ],
       ];
     }
     $form['breakpoints']['add'] = [
@@ -250,7 +282,7 @@ class DefaultEntityForm extends EntityForm {
    * @param array $form
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
-	public function addMoreRemove(array &$form, FormStateInterface $form_state) {
+	public function addMoreRemove(array &$form, FormStateInterface $form_state){
 		// Get the triggering item
     $delta_remove = $form_state->getTriggeringElement()['#parents'][2];
     
@@ -316,16 +348,21 @@ class DefaultEntityForm extends EntityForm {
     return $form['breakpoints'];
   }
   //Functions to validate fields of form
+ 
   public static function validateNumber(&$element, FormStateInterface $form_state, &$complete_form) {
+    // var_dump($element); die();
     $value = $element['#value'];
     if ($value === '') {
-      return;
+     return;
     }
     $name = empty($element['#title']) ? $element['#parents'][0] : $element['#title'];
     // Ensure the input is numeric.
     if (!is_numeric($value)) {
       $form_state->setError($element, t('%name must be a number.', ['%name' => $name]));
       return;
+    }
+      if (isset($element['#required']) &&  $value <=> $element['#required']) {
+      $form_state->setError($element, t('%name is required'));
     }
     // Ensure that the input is greater than the #min property, if set.
     if (isset($element['#min']) && $value < $element['#min']) {
@@ -350,8 +387,8 @@ class DefaultEntityForm extends EntityForm {
   public static function validateString(&$element, FormStateInterface $form_state, &$complete_form) {
     $value = $element['#value'];
     $value = strtolower($value);
-    if (!preg_match('/^[a-z ]{3,15}$/', $value)) {
-      $form_state->setError($element, t('Please. Write only data type string. Minimum 3 characters and Maximum 15'));
+    if (!preg_match('/^[a-z ]{3,25}$/', $value)) {
+      $form_state->setError($element, t('Please. Write only data type string. Minimum 5 characters and Maximum 25'));
     }
   }
   public static function validateIdpublicity(&$element, FormStateInterface $form_state, &$complete_form){
@@ -365,6 +402,7 @@ class DefaultEntityForm extends EntityForm {
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
+    // var_dump($form_state->getValue('measurement'));die();
     
     $default_entity = $this->entity;
     $value_breakpoints= $form_state->getValue('breakpoints', 'form');
@@ -380,12 +418,13 @@ class DefaultEntityForm extends EntityForm {
         ]));
         break;
       default:
-        $this->messenger()->addMessage($this->t('Saved the %label Advertising entity.', [
+        $this->messenger()->addMessage($this->t('Saved the %label Custom Publicity Entity.', [
           '%label' => $default_entity->label(),
         ]));
     }
     $form_state->setRedirectUrl($default_entity->toUrl('collection'));
   }
+
   /**
    * Get names for all taxonomy vocabularies.
    * 
@@ -445,9 +484,10 @@ class DefaultEntityForm extends EntityForm {
       
       foreach ($nodes as $node) {
         $data_nodes[] = $node->label();
-      }
-      $message = $this->t('In the following nodes the publication will be rendered: ' . implode(',', $data_nodes));
+        $message = $this->t('In the following nodes the publication will be rendered: ' . implode(',', $data_nodes));
       return $this->messenger()->addMessage($message);
+      }
+      
     }
   }
 }
