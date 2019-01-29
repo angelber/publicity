@@ -22,3 +22,36 @@ function publicity_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
+
+/**
+* alterar_formulario_form_taxonomy_vocabulary_confirm_delete_alter
+*
+* @param mixed $form
+* @param mixed $form_state
+* @param mixed $form_id
+*
+* @return void
+*/
+function publicity_form_taxonomy_vocabulary_confirm_delete_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+// dpm($form);
+ksm($form);
+$connection = \Drupal::database();
+$query = $connection->query("SELECT * FROM config WHERE name LIKE '%publicity.default_entity.%'");
+$result = $query->fetchAll();
+$serializer = \Drupal::service('serialization.phpserialize');
+foreach ($result as $key => $entity) {
+$data[] = $serializer->decode($entity->data);
+if($form['#cache']['tags'][0] == 'config:taxonomy.vocabulary.' .$data[$key]['render_section']) {
+$form['entity_deletes']['#type'] = 'markup';
+$form['entity_deletes']['#markup'] = ' ';
+$form['actions']['submit']['#disabled'] = TRUE;
+unset($form['entity_deletes']);
+$form['description']['#markup'] = '<strong>You Can\'t <em>Delete</em> this vocabulary because it\'s in use.</strong>';
+}
+
+} 
+// $form['actions']['submit']['#disabled'] = true;
+// \Drupal::messenger()->addMessage(t("<strong>You can not delete this vocabulary because it is in use!</strong>"), 'warning');
+
+// $form['#validate'] = 'alterar_formulario_validate';
+}

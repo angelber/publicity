@@ -1,6 +1,5 @@
 <?php
 namespace Drupal\publicity\Form;
-
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManager;
@@ -24,7 +23,6 @@ class DefaultEntityForm extends EntityForm {
    * @var $connection Drupal\Core\Database\Connection
    */
   protected $delta;
-
   /**
    * Class construct
    * 
@@ -54,7 +52,7 @@ class DefaultEntityForm extends EntityForm {
     $form = parent::form($form, $form_state);
     $default_entity = $this->entity;
     $class = get_class($this);
-    $form['#attributes']['novalidate'] = 'novalidate';
+    /* $form['#attributes']['novalidate'] = 'novalidate'; */
     // Disable caching for the form
     $form['#cache'] = ['max-age' => 0];
     
@@ -130,26 +128,36 @@ class DefaultEntityForm extends EntityForm {
     ];
     $width = $default_entity->getBreakpoints();
     if(!empty($width)) {
-      $form_state->set('field_deltas', range(0,count($width['form']) - 1));
-    }
-    if ($form_state->get('field_deltas') == '') {
-      $form_state->set('field_deltas', range(0,0));
+      $form_state->set('field_deltas_pixel', range(0,count($width['pixel']) - 1));
+      $form_state->set('field_deltas_percentage', range(0,count($width['percentage']) - 1));
     }
     
-    $field_count = $form_state->get('field_deltas');
-  
-    foreach ($field_count as $delta) {
-      $this->delta = $delta;
-      $form['breakpoints']['form'][$delta] = [
+    if ($form_state->get('field_deltas_pixel') == '') {
+      $form_state->set('field_deltas_pixel', range(0,0));
+    }
+    if ($form_state->get('field_deltas_percentage') == '') {
+      $form_state->set('field_deltas_percentage', range(0,0));
+    }
+    
+    $field_count1 = $form_state->get('field_deltas_pixel');
+    $field_count2 = $form_state->get('field_deltas_percentage');
+
+    foreach ($field_count1 as $delta) {
+      $form['breakpoints']['pixel'][$delta] = [
         '#type' => 'fieldset',
-        '#title' => $this->t('RESPONSIVE DESIGN'),
+        '#title' => $this->t('PIXEL'),
         '#tree' => TRUE,
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['value'=>'pixel'],
+          ],
+        ],
       ];
-      $form['breakpoints']['form'][$delta]['pixelwidth'] = [
+      $form['breakpoints']['pixel'][$delta]['pixelwidth'] = [
         '#type' => 'number',
         '#title' => 'Width', 
         '#min' => 1,
-        '#default_value' => $width['form'][$delta]['pixelwidth'],
+        '#default_value' => $width['pixel'][$delta]['pixelwidth'],
         '#description' => $this->t('Example: 350 px'),
         '#min'=>1,
         '#max'=> 1999,
@@ -167,11 +175,11 @@ class DefaultEntityForm extends EntityForm {
         ],
       ];
       ;
-      $form['breakpoints']['form'][$delta]['pixelheight'] = [
+      $form['breakpoints']['pixel'][$delta]['pixelheight'] = [
         '#type' => 'number',
         '#title' => 'Height', 
         '#min' => 1,
-        '#default_value' => $width['form'][$delta]['pixelheight'],
+        '#default_value' => $width['pixel'][$delta]['pixelheight'],
         '#description' => $this->t('Example: 750px'),
         '#step' => 1,
         '#min'=>1,
@@ -188,51 +196,7 @@ class DefaultEntityForm extends EntityForm {
           [$class, 'validateNumber'],
         ],
       ];
-      
-        $form['breakpoints']['form'][$delta]['percentagewidth'] = [
-        '#type' => 'number',
-        '#title' => 'Width', 
-        '#min' => 1,
-        '#default_value' => $width['form'][$delta]['percentagewidth'],
-        '#description' => $this->t('Example: 35%'),
-        '#min'=>1,
-        '#max'=> 99,
-        '#step' => 1,
-        '#states' => [
-          'visible' => [
-          ':input[name="measurement"]' => ['value' => 'percentage'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'percentage'],
-          ],
-        ],
-        '#element_validate'=>[
-          [$class, 'validateNumber'],
-        ],
-      ];
-      
-      $form['breakpoints']['form'][$delta]['percentageheight'] = [
-        '#type' => 'number',
-        '#title' => 'Height', 
-        '#min' => 1,
-        '#default_value' => $width['form'][$delta]['percentageheight'],
-        '#description' => $this->t('Example: 75%'),
-        '#step' => 1,
-        '#min'=>1,
-        '#max'=> 99,
-        '#states' => [
-        'visible' => [
-          ':input[name="measurement"]' => ['value' => 'percentage'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'percentage'],
-          ],
-        ],
-        '#element_validate'=>[
-        [$class, 'validateNumber'],
-        ],
-      ];
-      $form['breakpoints']['form'][$delta]['device']=[
+      $form['breakpoints']['pixel'][$delta]['devicepixel']=[
         '#type'=>'select',
         '#options'=>[
           'Desktop','Mobile','Tablet',
@@ -241,15 +205,15 @@ class DefaultEntityForm extends EntityForm {
         '#description'=> $this->t('Choose a device for your configuration'),
         '#states'=>[
           'visible'=>[
-            ':input[name="measurement"]'=>['checked'=>TRUE],
+            ':input[name="measurement"]'=>['value'=>'pixel'],
           ],
           'required' => [
           ':input[name="measurement"]' => ['value' => 'pixel'],
           ],
         ],
-        '#default_value'=> $width['form'][$delta]['device'],
+        '#default_value'=> $width['pixel'][$delta]['devicepixel'],
       ];
-      $form['breakpoints']['form'][$delta]['remove'] = [
+      $form['breakpoints']['pixel'][$delta]['remove'] = [
         '#type' => 'submit',
         '#value' => $this->t('Remove'),
         '#submit' => ['::addMoreRemove'],
@@ -260,22 +224,127 @@ class DefaultEntityForm extends EntityForm {
         '#name' => 'remove_name_' . $delta,
         '#states'=>[
           'visible'=>[
-            ':input[name="measurement"]'=>['checked'=>TRUE]
+            ':input[name="measurement"]'=>['value'=>'pixel']
           ]
         ],
       ];
     }
-    $form['breakpoints']['add'] = [
+    $form['breakpoints']['pixel']['add'] = [
       '#type' => 'submit',
       '#value' => $this->t('Add'),
       '#submit' => ['::AddMoreAddOne'],
       '#ajax' => [
-        'callback' => '::AddMoreAddOneCallback',
+        'callback' => '::addMorePixelCallback',
         'wrapper' => 'breakpoint-wrapper',
       ],
+      '#states'=>[
+        'visible'=>[
+          ':input[name="measurement"]'=>['value'=>'pixel'],
+        ],
+      ],
     ];
-    return $form;
-  }
+    foreach ($field_count2 as $delta) {
+      $form['breakpoints']['percentage'][$delta] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('PERCENTAGE'),
+        '#tree' => TRUE,
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['value'=>'percentage'],
+          ],
+        ],
+      ];
+    $form['breakpoints']['percentage'][$delta]['percentagewidth'] = [
+      '#type' => 'number',
+      '#title' => 'Width', 
+      '#min' => 1,
+      '#default_value' => $width['percentage'][$delta]['percentagewidth'],
+      '#description' => $this->t('Example: 35%'),
+      '#min'=>1,
+      '#max'=> 99,
+      '#step' => 1,
+      '#states' => [
+        'visible' => [
+        ':input[name="measurement"]' => ['value' => 'percentage'],
+        ],
+        'required' => [
+        ':input[name="measurement"]' => ['value' => 'percentage'],
+        ],
+      ],
+      '#element_validate'=>[
+        [$class, 'validateNumber'],
+      ],
+    ]; 
+    $form['breakpoints']['percentage'][$delta]['percentageheight'] = [
+      '#type' => 'number',
+      '#title' => 'Height', 
+      '#min' => 1,
+      '#default_value' => $width['percentage'][$delta]['percentageheight'],
+      '#description' => $this->t('Example: 75%'),
+      '#step' => 1,
+      '#min'=>1,
+      '#max'=> 99,
+      '#states' => [
+      'visible' => [
+        ':input[name="measurement"]' => ['value' => 'percentage'],
+        ],
+        'required' => [
+        ':input[name="measurement"]' => ['value' => 'percentage'],
+        ],
+      ],
+      '#element_validate'=>[
+      [$class, 'validateNumber'],
+      ],
+    ]; 
+     $form['breakpoints']['percentage'][$delta]['devicepercentage']=[
+        '#type'=>'select',
+        '#options'=>[
+          'Desktop','Mobile','Tablet',
+        ],
+        '#empty_option'=>'Devices',
+        '#description'=> $this->t('Choose a device for your configuration'),
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['value'=>'percentage'],
+          ],
+          'required' => [
+          ':input[name="measurement"]' => ['value' => 'percentage'],
+          ],
+        ],
+        '#default_value'=> $width['percentage'][$delta]['devicepercentage'],
+      ]; 
+       $form['breakpoints']['percentage'][$delta]['remove'] = [
+        '#type' => 'submit',
+        '#value' => $this->t('Remove'),
+        '#submit' => ['::addMoreRemove'],
+        '#ajax' => [
+          'callback' => '::addMoreRemoveCallback',
+          'wrapper' => 'breakpoint-wrapper',
+        ],
+        '#name' => 'remove_name_' . $delta,
+        '#states'=>[
+          'visible'=>[
+            ':input[name="measurement"]'=>['value'=>'percentage']
+          ]
+        ],
+      ];
+    }
+     $form['breakpoints']['percentage']['add'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Add'),
+      '#submit' => ['::AddMoreAddOne'],
+      '#ajax' => [
+        'callback' => '::addMorePercentageCallback',
+        'wrapper' => 'breakpoint-wrapper',
+      ],
+      '#states'=>[
+        'visible'=>[
+          ':input[name="measurement"]'=>['value'=>'percentage'],
+        ],
+      ],
+    ];
+     return $form;
+}
   /**
    * function to add one field of breakpoint.
    * 
@@ -318,25 +387,52 @@ class DefaultEntityForm extends EntityForm {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
 	public function AddMoreAddOne(array &$form, FormStateInterface $form_state) {
-    // Store our form state
-    $field_deltas_array = $form_state->get('field_deltas');
-    
-    // check to see if there is more than one item in our array
-    if (count($field_deltas_array) > 0) {
-      // Add a new element to our array and set it to our highest value plus one
-      $field_deltas_array[] = max($field_deltas_array) + 1;
+    switch ($form_state->getValue('measurement')) {
+      case 'pixel':
+         // Store our form state
+          $field_deltas_array = $form_state->get('field_deltas_pixel');
+          
+          // check to see if there is more than one item in our array
+          if (count($field_deltas_array) > 0) {
+            // Add a new element to our array and set it to our highest value plus one
+            $field_deltas_array[] = max($field_deltas_array) + 1;
+          }
+          else {
+            // Set the new array element to 0
+            $field_deltas_array[] = 0;
+          }
+        
+          // Rebuild the field deltas values
+          $form_state->set('field_deltas_pixel', $field_deltas_array);
+        
+          // Rebuild the form
+          $form_state->setRebuild();
+        break;
+      case 'percentage':
+        // Store our form state
+          $field_deltas_array = $form_state->get('field_deltas_percentage');
+          
+          // check to see if there is more than one item in our array
+          if (count($field_deltas_array) > 0) {
+            // Add a new element to our array and set it to our highest value plus one
+            $field_deltas_array[] = max($field_deltas_array) + 1;
+          }
+          else {
+            // Set the new array element to 0
+            $field_deltas_array[] = 0;
+          }
+        
+          // Rebuild the field deltas values
+          $form_state->set('field_deltas_percentage', $field_deltas_array);
+        
+          // Rebuild the form
+          $form_state->setRebuild();
+        break;
+      
+      default:
+        echo 'An unxpected error has ocurred';
+        break;
     }
-    else {
-      // Set the new array element to 0
-      $field_deltas_array[] = 0;
-    }
-  
-    // Rebuild the field deltas values
-    $form_state->set('field_deltas', $field_deltas_array);
-  
-    // Rebuild the form
-    $form_state->setRebuild();
-    
   }
   /**
    * @param array $form
@@ -344,8 +440,11 @@ class DefaultEntityForm extends EntityForm {
    *
    * @return mixed
    */
-  function AddMoreAddOneCallback(array &$form, FormStateInterface $form_state) {
-    return $form['breakpoints'];
+  function addMorePixelCallback(array &$form, FormStateInterface $form_state) {
+    return $form['breakpoints']['pixel'];
+  }
+    function addMorePercentageCallback(array &$form, FormStateInterface $form_state) {
+    return $form['breakpoints']['percentage'];
   }
   //Functions to validate fields of form
  
@@ -360,9 +459,6 @@ class DefaultEntityForm extends EntityForm {
     if (!is_numeric($value)) {
       $form_state->setError($element, t('%name must be a number.', ['%name' => $name]));
       return;
-    }
-      if (isset($element['#required']) &&  $value <=> $element['#required']) {
-      $form_state->setError($element, t('%name is required'));
     }
     // Ensure that the input is greater than the #min property, if set.
     if (isset($element['#min']) && $value < $element['#min']) {
@@ -405,8 +501,19 @@ class DefaultEntityForm extends EntityForm {
     // var_dump($form_state->getValue('measurement'));die();
     
     $default_entity = $this->entity;
-    $value_breakpoints= $form_state->getValue('breakpoints', 'form');
-    $default_entity->setBreakpoints($value_breakpoints);
+    switch ($form_state->getValue('measurement')) {
+      case 'pixel':
+        $value_breakpoints= $form_state->getValue('breakpoints', 'pixel');
+        $default_entity->setBreakpoints($value_breakpoints);
+        break;
+       case 'percentage':
+        $value_breakpoints= $form_state->getValue('breakpoints', 'percentage');
+        $default_entity->setBreakpoints($value_breakpoints);
+        break;
+      default:
+        echo 'An unexpected error has ocrurred';
+        break;
+    }
     $place = $form_state->getValue('render_section');
     $this->checkStatusEntity($place);
     $status = $default_entity->save();
@@ -424,7 +531,6 @@ class DefaultEntityForm extends EntityForm {
     }
     $form_state->setRedirectUrl($default_entity->toUrl('collection'));
   }
-
   /**
    * Get names for all taxonomy vocabularies.
    * 

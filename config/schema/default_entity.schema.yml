@@ -27,7 +27,10 @@ publicity.default_entity.*:
       label: 'Custom Measurement'
     breakpoints:
       type: string
-      label: 'Breakpoints'  
+      label: 'Breakpoints' 
+    hidden:
+      type: string
+      label: hiddden field 
 
 
 

@@ -84,6 +84,12 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    * @var string
    */
   public $measurement;
+  /**
+   * The Default entity label.
+   *
+   * @var string
+   */
+  public $hidden;
 
  /**
    * The Advertising entity breakpoints.
