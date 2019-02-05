@@ -15,13 +15,6 @@ class AdBlock extends BlockBase{
      * {@inheritdoc}
      */
     public function build(){
-        $build = [];
-        $build['ad']=[
-            '#theme'=>'publicity_render',
-                'library'=>[
-                    'publicity/renderAd',
-                ]
-        ];
-        return $build;
+    return ['#theme'=> 'adElement'];
     }
 }
