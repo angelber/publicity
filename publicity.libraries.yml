@@ -1,0 +1,5 @@
+renderAd:
+  js: 
+    js/renderAdFile.js: {}
+  dependencies:
+    - core/jquery

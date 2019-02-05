@@ -229,6 +229,7 @@ class DefaultEntityForm extends EntityForm {
         ],
       ];
     }
+    
     $form['breakpoints']['pixel']['add'] = [
       '#type' => 'submit',
       '#value' => $this->t('Add'),
@@ -345,6 +346,7 @@ class DefaultEntityForm extends EntityForm {
     ];
      return $form;
 }
+  
   /**
    * function to add one field of breakpoint.
    * 

@@ -55,3 +55,14 @@ $form['description']['#markup'] = '<strong>You Can\'t <em>Delete</em> this vocab
 
 // $form['#validate'] = 'alterar_formulario_validate';
 }
+
+/**
+ * Implements hook_theme().
+ */
+function publicity_theme() {
+  return [
+    'publicity_render' => [
+      'variables' => [],
+    ],
+  ];
+}
