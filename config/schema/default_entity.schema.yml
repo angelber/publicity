@@ -1,6 +1,6 @@
 publicity.default_entity.*:
   type: config_entity
-  label: 'Advertising entity config'
+  label: 'Publicity entity config'
   mapping:
     id:
       type: string
@@ -10,7 +10,7 @@ publicity.default_entity.*:
       label: 'Label'
     uuid:
       type: string
-    url:
+    Url:
       type: string
       label: 'Url' 
     ad_id:

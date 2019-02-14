@@ -22,7 +22,7 @@ class AdBlock extends BlockBase{
         '#type'=>'container',
         '#attributes'=>[
             'class'=>[
-                'renderAd'
+                'renderAd',
             ]
         ]
     ];

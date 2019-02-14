@@ -5,10 +5,11 @@
     Drupal.behaviors.example = {
         attach: function (context, settings) {
 
-            var dataEntity = drupalSettings.publicity.publicity_var.entityad;
-            var idEntity = drupalSettings.publicity.publicity_var.entityad['ad_id'];
-            var url = drupalSettings.publicity.publicity_var.entityad['url'];
-            var breakpoints = drupalSettings.publicity.publicity_var.data_breakpoints['form'];
+            var dataEntity = drupalSettings.publicity.publicity_data.adpublicity;
+            var idEntity = drupalSettings.publicity.publicity_data.adpublicity['ad_id'];
+            var url = drupalSettings.publicity.publicity_data.adpublicity['Url'];
+            var breakpoints = drupalSettings.publicity.publicity_data.data_breakpoints['form'];
+            console.log(idEntity);
 
             $('.renderAd', context).once('example').each(function () {
 
@@ -20,7 +21,8 @@
                     if ($(window).width() <= 420) {
                         if (breakpoints[index]['width'] <= 420) {
                             $(' div[class="' + idEntity + '"] ', context).css({
-                                'width': breakpoints[index]['width'],
+                                'maxWidth': breakpoints[index]['width']+'px',
+                                'border': "2px solid red",
                             });
                         }
                     }
@@ -28,7 +30,7 @@
                     if ($(window).width() > 420 && $(window).width() <= 770) {
                         if (breakpoints[index]['width'] > 420 && breakpoints[index]['width'] <= 770) {
                             $(' div[class="' + idEntity + '"] ', context).css({
-                                'width': breakpoints[index]['width'],
+                                'maxWidth': breakpoints[index]['width'],
                             });
                         }
                     }

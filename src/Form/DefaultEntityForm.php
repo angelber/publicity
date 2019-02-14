@@ -10,7 +10,7 @@ use Drupal\Component\Utility\Number as NumberUtility;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class AdvertisingEntityForm.
+ * Class DefualtEntityForm.
  */
 class DefaultEntityForm extends EntityForm {
 
@@ -25,13 +25,13 @@ class DefaultEntityForm extends EntityForm {
   protected $connection;
 
   /**
-   * Class construct
+   * Construct Class
    * 
    * @param $entity_type Drupal\Core\Entity\EntityTypeManager
-   *  The entity type manager
+   *  Entity Type Manager
    * 
    * @param $connection Drupal\Core\Database\Connection
-   *  The connection to database
+   *  Database Connection
    */
   public function __construct(EntityTypeManager $entity_type, Connection $connection) {
     $this->entity_type = $entity_type;
@@ -55,7 +55,7 @@ class DefaultEntityForm extends EntityForm {
 
     $form = parent::form($form, $form_state);
 
-    $advertising_entity = $this->entity;
+    $publicity_entity = $this->entity;
 
     $class = get_class($this);
 
@@ -69,8 +69,8 @@ class DefaultEntityForm extends EntityForm {
       '#type' => 'textfield',
       '#title' => $this->t('Name'),
       '#maxlength' => 255,
-      '#default_value' => $advertising_entity->label(),
-      '#description' => $this->t("Name for the Advertising entity."),
+      '#default_value' => $publicity_entity->label(),
+      '#description' => $this->t("Publicity Name"),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateString'],
@@ -79,18 +79,18 @@ class DefaultEntityForm extends EntityForm {
 
     $form['id'] = [
       '#type' => 'machine_name',
-      '#default_value' => $advertising_entity->id(),
+      '#default_value' => $publicity_entity->id(),
       '#machine_name' => [
-        'exists' => '\Drupal\advertising\Entity\AdvertisingEntity::load',
+        'exists' => '\Drupal\publicity\Entity\DefaultEntity::load',
       ],
-      '#disabled' => !$advertising_entity->isNew(),
+      '#disabled' => !$publicity_entity->isNew(),
     ];
 
-    $form['url'] = [
-      '#type' => 'textfield',
+    $form['Url'] = [
+      '#type' => 'url',
       '#title' => $this->t('Url'),
-      '#default_value' => $advertising_entity->url_ad,
-      '#description' => $this->t('The Url of AD'),
+      '#default_value' => $publicity_entity->getUrl(),
+      '#placeholder'=> $this->t('https://www.youtube.com'),
       '#required' => TRUE,
     ];
 
@@ -98,8 +98,8 @@ class DefaultEntityForm extends EntityForm {
       '#type' => 'textfield',
       '#title' => $this->t('ID'),
       '#maxlength' => 255,
-      '#default_value' => $advertising_entity->id_ad,
-      '#description' => $this->t('The unique id of each AD'),
+      '#default_value' => $publicity_entity->ad_id,
+      '#placeholder'=> $this->t('Write here the Publicity Id'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateIdpublicity'],
@@ -111,9 +111,9 @@ class DefaultEntityForm extends EntityForm {
 
     $form['place'] = [
       '#type' => 'select',
-      '#title' => $this->t('Default Place'),
-      '#default_value' => $advertising_entity->getPlace(),
-      '#description' => $this->t('The place where the ad will be displayed'),
+      '#title' => $this->t('Render Section'),
+      '#default_value' => $publicity_entity->getPlace(),
+      '#description' => $this->t('Sections where ad will be displayed'),
       '#options' => [
         'Taxonomies' => $data_taxonomy,
         'Content Types' => $data_content_type,
@@ -130,10 +130,10 @@ class DefaultEntityForm extends EntityForm {
       '#suffix' => '</div>',
     ];
     
-    $breakpoints_data = $advertising_entity->getBreakpoints();
+    $breakpoints = $publicity_entity->getBreakpoints();
     $set_breakpoints = [];
 
-    for ($i = 0; $i < count($breakpoints_data['form']); $i++) { 
+    for ($i = 0; $i < count($breakpoints['form']); $i++) { 
       $set_breakpoints[] = $i;
     }
 
@@ -143,33 +143,33 @@ class DefaultEntityForm extends EntityForm {
 
     $field_count = $form_state->get('field_deltas');
 
-    foreach($field_count as $field) {
+    foreach($field_count as $delta) {
 
-      $form['breakpoints']['form'][$field] = [
+      $form['breakpoints']['form'][$delta] = [
         '#type' => 'fieldset',
-        '#title' => $this->t('Option #' . $field ),
+        '#title' => $this->t('Option #' . $delta ),
         '#tree' => TRUE,
       ];
   
-      $form['breakpoints']['form'][$field]['width'] = [
+      $form['breakpoints']['form'][$delta]['width'] = [
         '#type' => 'number',
         '#title' => 'Width',  
         '#min' => 1,
         '#required' => TRUE,
-        '#default_value' => $breakpoints_data['form'][$field]['width'],
+        '#default_value' => $breakpoints['form'][$delta]['width'],
         '#description' => $this->t('The width in px.'),
       ];
   
-      $form['breakpoints']['form'][$field]['height'] = [
+      $form['breakpoints']['form'][$delta]['height'] = [
         '#type' => 'number',
         '#title' => 'height', 
         '#min' => 1,
         '#required' => TRUE,
-        '#default_value' => $breakpoints_data['form'][$field]['height'],
+        '#default_value' => $breakpoints['form'][$delta]['height'],
         '#description' => $this->t('The height in px.'),
       ];
   
-      $form['breakpoints']['form'][$field]['remove'] = [
+      $form['breakpoints']['form'][$delta]['remove'] = [
         '#type' => 'submit',
         '#value' => $this->t('Remove'),
         '#submit' => ['::addMoreRemove'],
@@ -177,7 +177,7 @@ class DefaultEntityForm extends EntityForm {
           'callback' => '::addMoreRemoveCallback',
           'wrapper' => 'breakpoint-wrapper',
         ],
-        '#name' => 'remove_name_' . $field,
+        '#name' => 'remove_name_' . $delta,
       ];
 
     }
@@ -191,11 +191,7 @@ class DefaultEntityForm extends EntityForm {
         'wrapper' => 'breakpoint-wrapper',
       ],
     ];
-
-    
     return $form;
-
-    
   }
 
   /**
@@ -340,7 +336,7 @@ class DefaultEntityForm extends EntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     
-    $advertising_entity = $this->entity;
+    $publicity_entity = $this->entity;
     $form_values = $form_state->getValue('breakpoints', 'form');
     $count = 0;
     $value_breakpoints = $form_values;
@@ -353,22 +349,22 @@ class DefaultEntityForm extends EntityForm {
       }     
     }
     
-    $advertising_entity->setBreakpoints($value_breakpoints);
-    $status = $advertising_entity->save();
+    $publicity_entity->setBreakpoints($value_breakpoints);
+    $status = $publicity_entity->save();
     
     switch ($status) {
       case SAVED_NEW:
-        $this->messenger()->addMessage($this->t('Created the %label Advertising entity.', [
-          '%label' => $advertising_entity->label(),
+        $this->messenger()->addMessage($this->t('Created the %label Publicity entity.', [
+          '%label' => $publicity_entity->label(),
         ]));
         break;
 
       default:
-        $this->messenger()->addMessage($this->t('Saved the %label Advertising entity.', [
-          '%label' => $advertising_entity->label(),
+        $this->messenger()->addMessage($this->t('Saved the %label Publicity entity.', [
+          '%label' => $publicity_entity->label(),
         ]));
     }
-    $form_state->setRedirectUrl($advertising_entity->toUrl('collection'));
+    $form_state->setRedirectUrl($publicity_entity->toUrl('collection'));
   }
 
   /**

@@ -84,8 +84,8 @@ if($result) {
     $data_breakpoints = \Drupal::service('serialization.phpserialize')->decode($data_serilized['breakpoints']);
 
   }
-  $variables['#attached']['drupalSettings']['publicity']['publicity_var']['entityad'] = $data_serilized;
-  $variables['#attached']['drupalSettings']['publicity']['publicity_var']['data_breakpoints'] = $data_breakpoints;
+  $variables['#attached']['drupalSettings']['publicity']['publicity_data']['adpublicity'] = $data_serilized;
+  $variables['#attached']['drupalSettings']['publicity']['publicity_data']['data_breakpoints'] = $data_breakpoints;
 } 
 
   $variables['#attached']['library'][] = 'publicity/renderAd';

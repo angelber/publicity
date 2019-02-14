@@ -1,4 +1,7 @@
 renderAd:
+  css:
+    theme:
+      css/style.css: {}
   js: 
     js/renderAdFile.js: {}
   dependencies:

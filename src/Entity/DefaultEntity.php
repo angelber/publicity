@@ -3,40 +3,39 @@
 namespace Drupal\publicity\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
-use Drupal\Component\Serialization\PhpSerialize;
 
 /**
- * Defines the Advertising entity entity.
+ * Defines the Default entity entity.
  *
  * @ConfigEntityType(
- *   id = "advertising_entity",
- *   label = @Translation("Advertising entity"),
+ *   id = "default_entity",
+ *   label = @Translation("Default entity"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\advertising\AdvertisingEntityListBuilder",
+ *     "list_builder" = "Drupal\publicity\DefaultEntityListBuilder",
  *     "form" = {
- *       "add" = "Drupal\advertising\Form\AdvertisingEntityForm",
- *       "edit" = "Drupal\advertising\Form\AdvertisingEntityForm",
- *       "delete" = "Drupal\advertising\Form\AdvertisingEntityDeleteForm"
+ *       "add" = "Drupal\publicity\Form\DefaultEntityForm",
+ *       "edit" = "Drupal\publicity\Form\DefaultEntityForm",
+ *       "delete" = "Drupal\publicity\Form\DefaultEntityDeleteForm"
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\advertising\AdvertisingEntityHtmlRouteProvider",
+ *       "html" = "Drupal\publicity\DefaultEntityHtmlRouteProvider",
  *     },
  *   },
- *   config_prefix = "advertising_entity",
+ *   config_prefix = "default_entity",
  *   admin_permission = "administer site configuration",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid",
- *     "url_ad" = "url_ad"
+ *     "url" = "url"
  *   },
  *   links = {
- *     "canonical" = "/admin/structure/advertising_entity/{advertising_entity}",
- *     "add-form" = "/admin/structure/advertising_entity/add",
- *     "edit-form" = "/admin/structure/advertising_entity/{advertising_entity}/edit",
- *     "delete-form" = "/admin/structure/advertising_entity/{advertising_entity}/delete",
- *     "collection" = "/admin/structure/advertising_entity"
+ *     "canonical" = "/admin/structure/default_entity/{default_entity}",
+ *     "add-form" = "/admin/structure/default_entity/add",
+ *     "edit-form" = "/admin/structure/default_entity/{default_entity}/edit",
+ *     "delete-form" = "/admin/structure/default_entity/{default_entity}/delete",
+ *     "collection" = "/admin/structure/default_entity"
  *   }
  * )
  */
@@ -61,14 +60,14 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @var string
    */
-  public $url_ad;
+  public $Url;
 
   /**
    * The Advertising entity id of ad.
    *
    * @var string
    */
-  public $id_ad;
+  public $ad_id;
 
   /**
    * The Advertising entity place.
@@ -92,6 +91,16 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
    *
    * @return string
    */
+
+  public function getUrl() {
+    return $this->get('Url');
+  }
+
+  public function setUrl(string $Url) {
+    return $this->set('Url', $Url);
+  }
+
+
   public function setPlace($place) {
     return $this->set('place', $place);
   }
