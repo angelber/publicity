@@ -5,15 +5,17 @@ namespace Drupal\publicity\Entity;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 
 /**
- * Provides an interface for defining Default entity entities.
+ * Provides an interface for defining Advertising entity entities.
  */
 interface DefaultEntityInterface extends ConfigEntityInterface {
+
   /**
    * Get the default place to put an AD.
    *
    * @return string
    */
   public function getPlace();
+
   /**
    * Set the default place to put an AD.
    *
@@ -23,6 +25,7 @@ interface DefaultEntityInterface extends ConfigEntityInterface {
    * @return string
    */
   public function setPlace($place);
+
   /**
    * Get the breakpoints.
    *
@@ -39,4 +42,5 @@ interface DefaultEntityInterface extends ConfigEntityInterface {
    * @return string
    */
   public function setBreakpoints($breakpoints);
+
 }

@@ -61,8 +61,33 @@ $form['description']['#markup'] = '<strong>You Can\'t <em>Delete</em> this vocab
  */
 function publicity_theme() {
   return [
-    'adElement' => [
+    'customadblock' => [
       'variables' => [],
     ],
   ];
+}
+function publicity_preprocess_html(&$variables) {
+
+  $result = \Drupal::service('database')
+  ->query(
+    'SELECT * FROM `config` WHERE name LIKE :name ', [':name' => "publicity.default_entity.%"]
+  );
+
+  $data_serilized = '';
+  $data_breakpoints = '';
+
+if($result) {
+
+  while($data = $result->fetchAssoc()) {
+
+    $data_serilized = \Drupal::service('serialization.phpserialize')->decode($data['data']);
+    $data_breakpoints = \Drupal::service('serialization.phpserialize')->decode($data_serilized['breakpoints']);
+
+  }
+  $variables['#attached']['drupalSettings']['publicity']['publicity_var']['entityad'] = $data_serilized;
+  $variables['#attached']['drupalSettings']['publicity']['publicity_var']['data_breakpoints'] = $data_breakpoints;
+} 
+
+  $variables['#attached']['library'][] = 'publicity/renderAd';
+  
 }

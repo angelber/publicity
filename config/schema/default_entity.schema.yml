@@ -1,6 +1,6 @@
 publicity.default_entity.*:
   type: config_entity
-  label: 'Default entity config'
+  label: 'Advertising entity config'
   mapping:
     id:
       type: string
@@ -11,29 +11,14 @@ publicity.default_entity.*:
     uuid:
       type: string
     url:
-      type: url
-      label: 'Url'
-    render_section: 
       type: string
-      label: 'Viewing section'
-    id_publicity:
+      label: 'Url' 
+    ad_id:
       type: string
-      label: 'ID Publicity'
-    # measurement: 
-    #   type: string
-    #   label: 'Custom Measurement'  
-    measurement:
-      type: string 
-      label: 'Custom Measurement'
+      label: 'ID of Ad'
+    place:
+      type: string
+      label: 'Place'
     breakpoints:
       type: string
-      label: 'Breakpoints' 
-    hidden:
-      type: string
-      label: hiddden field 
-
-
-
-
-
-
+      label: 'Breakpoints'       

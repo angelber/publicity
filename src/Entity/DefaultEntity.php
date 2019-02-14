@@ -3,102 +3,88 @@
 namespace Drupal\publicity\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\Component\Serialization\PhpSerialize;
 
 /**
- * Defines the Default entity entity.
+ * Defines the Advertising entity entity.
  *
  * @ConfigEntityType(
- *   id = "default_entity",
- *   label = @Translation("Default entity"),
+ *   id = "advertising_entity",
+ *   label = @Translation("Advertising entity"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\publicity\DefaultEntityListBuilder",
+ *     "list_builder" = "Drupal\advertising\AdvertisingEntityListBuilder",
  *     "form" = {
- *       "add" = "Drupal\publicity\Form\DefaultEntityForm",
- *       "edit" = "Drupal\publicity\Form\DefaultEntityForm",
- *       "delete" = "Drupal\publicity\Form\DefaultEntityDeleteForm"
+ *       "add" = "Drupal\advertising\Form\AdvertisingEntityForm",
+ *       "edit" = "Drupal\advertising\Form\AdvertisingEntityForm",
+ *       "delete" = "Drupal\advertising\Form\AdvertisingEntityDeleteForm"
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\publicity\DefaultEntityHtmlRouteProvider",
+ *       "html" = "Drupal\advertising\AdvertisingEntityHtmlRouteProvider",
  *     },
  *   },
- *   config_prefix = "default_entity",
+ *   config_prefix = "advertising_entity",
  *   admin_permission = "administer site configuration",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid",
- *     "url" = "url"
+ *     "url_ad" = "url_ad"
  *   },
  *   links = {
- *     "canonical" = "/admin/structure/default_entity/{default_entity}",
- *     "add-form" = "/admin/structure/default_entity/add",
- *     "edit-form" = "/admin/structure/default_entity/{default_entity}/edit",
- *     "delete-form" = "/admin/structure/default_entity/{default_entity}/delete",
- *     "collection" = "/admin/structure/default_entity"
+ *     "canonical" = "/admin/structure/advertising_entity/{advertising_entity}",
+ *     "add-form" = "/admin/structure/advertising_entity/add",
+ *     "edit-form" = "/admin/structure/advertising_entity/{advertising_entity}/edit",
+ *     "delete-form" = "/admin/structure/advertising_entity/{advertising_entity}/delete",
+ *     "collection" = "/admin/structure/advertising_entity"
  *   }
  * )
  */
 class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
 
   /**
-   * The Default entity ID.
+   * The Advertising entity ID.
    *
    * @var string
    */
   public $id;
 
   /**
-   * The Default entity label.
+   * The Advertising entity label.
    *
    * @var string
    */
   public $label;
 
-
   /**
-   * The Default entity label.
-   *
-   * @var url
-   */
-  public $url;
-
-
-  /**
-   * The Default entity label.
+   * The Advertising entity Url.
    *
    * @var string
    */
-  public $render_section;
-
-   /**
-   * The Default entity label.
-   *
-   * @var string
-   */
-  public $id_publicity;
+  public $url_ad;
 
   /**
-   * The Default entity label.
+   * The Advertising entity id of ad.
    *
    * @var string
    */
-  public $measurement;
-  /**
-   * The Default entity label.
-   *
-   * @var string
-   */
-  public $hidden;
+  public $id_ad;
 
- /**
+  /**
+   * The Advertising entity place.
+   *
+   * @var string
+   */
+  protected $place;
+
+  /**
    * The Advertising entity breakpoints.
    *
    * @var array
    */
   public $breakpoints;
 
-  /**
+   /**
    * Set the default place to put an AD.
    *
    * @param string $place
@@ -109,14 +95,16 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
   public function setPlace($place) {
     return $this->set('place', $place);
   }
+
   /**
    * Get the default place to put an AD.
    *
    * @return string
    */
   public function getPlace() {
-    return $this->get('render_section');
+    return $this->get('place');
   }
+
   /**
    * Set the default breakpoints.
    *
@@ -129,6 +117,7 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
     $serializer = \Drupal::service('serialization.phpserialize');
     $this->breakpoints = $serializer->encode($breakpoints);
   }
+
   /**
    * Get the breakpoints.
    *
@@ -139,4 +128,3 @@ class DefaultEntity extends ConfigEntityBase implements DefaultEntityInterface {
     return $serializer->decode($this->breakpoints);
   }
 }
-

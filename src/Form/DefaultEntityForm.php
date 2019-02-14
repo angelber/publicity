@@ -1,28 +1,29 @@
 <?php
+
 namespace Drupal\publicity\Form;
+
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Number as NumberUtility;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Form\FormBase;
+
 /**
- * Class DefaultEntityForm.
+ * Class AdvertisingEntityForm.
  */
 class DefaultEntityForm extends EntityForm {
+
   /**
    * @var $entity_type Drupal\Core\Entity\EntityTypeManager
    */
   protected $entity_type;
+
   /**
    * @var $connection Drupal\Core\Database\Connection
    */
   protected $connection;
-  /**
-   * @var $connection Drupal\Core\Database\Connection
-   */
-  protected $delta;
+
   /**
    * Class construct
    * 
@@ -36,6 +37,7 @@ class DefaultEntityForm extends EntityForm {
     $this->entity_type = $entity_type;
     $this->connection = $connection;
   }
+
   /**
    * {@inheritdoc}
    */
@@ -45,62 +47,72 @@ class DefaultEntityForm extends EntityForm {
       $container->get('database')
     );
   }
+
   /**
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
+
     $form = parent::form($form, $form_state);
-    $default_entity = $this->entity;
+
+    $advertising_entity = $this->entity;
+
     $class = get_class($this);
-    /* $form['#attributes']['novalidate'] = 'novalidate'; */
+
     // Disable caching for the form
     $form['#cache'] = ['max-age' => 0];
     
     // Do not flatten nested form fields
     $form['#tree'] = TRUE;
+
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Name'),
       '#maxlength' => 255,
-      '#default_value' => $default_entity->label(),
-      '#placeholder'=>t('Configuration Entity Name'),
+      '#default_value' => $advertising_entity->label(),
+      '#description' => $this->t("Name for the Advertising entity."),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateString'],
       ],
     ];
+
     $form['id'] = [
       '#type' => 'machine_name',
-      '#default_value' => $default_entity->id(),
+      '#default_value' => $advertising_entity->id(),
       '#machine_name' => [
-        'exists' => '\Drupal\publicity\Entity\DefaultEntity::load',
+        'exists' => '\Drupal\advertising\Entity\AdvertisingEntity::load',
       ],
-      '#disabled' => !$default_entity->isNew(),
+      '#disabled' => !$advertising_entity->isNew(),
     ];
+
     $form['url'] = [
-      '#type' => 'url',
+      '#type' => 'textfield',
       '#title' => $this->t('Url'),
-      '#default_value' => $default_entity->url,
-      '#placeholder'=>t('https://yourwebsite.com'),
+      '#default_value' => $advertising_entity->url_ad,
+      '#description' => $this->t('The Url of AD'),
       '#required' => TRUE,
     ];
-    $form['id_publicity'] = [
+
+    $form['ad_id'] = [
       '#type' => 'textfield',
       '#title' => $this->t('ID'),
       '#maxlength' => 255,
-      '#default_value' => $default_entity->id_publicity,
-      '#placeholder'=>t('Example: WPX992'),
+      '#default_value' => $advertising_entity->id_ad,
+      '#description' => $this->t('The unique id of each AD'),
       '#required' => TRUE,
       '#element_validate'=>[
         [$class, 'validateIdpublicity'],
       ],
     ];
+
     $data_taxonomy = $this->taxonomy_vocabulary_get_names();
     $data_content_type = $this->content_type_get_names();
-    $form['render_section'] = [
+
+    $form['place'] = [
       '#type' => 'select',
-      '#title' => $this->t('Render Section'),
-      '#default_value' => $default_entity->getPlace(),
+      '#title' => $this->t('Default Place'),
+      '#default_value' => $advertising_entity->getPlace(),
       '#description' => $this->t('The place where the ad will be displayed'),
       '#options' => [
         'Taxonomies' => $data_taxonomy,
@@ -108,16 +120,7 @@ class DefaultEntityForm extends EntityForm {
       ],
       '#required' => TRUE,
     ];
-    $form['measurement']=[
-      '#type'=>'radios',
-      '#title'=>$this->t('Measurement'),
-      '#default_value'=> $default_entity->measurement,
-      '#options'=>[
-        'pixel'=>$this->t('Pixel'),
-        'percentage'=>$this->t('Percentage'),
-        ],
-      '#required'=>TRUE,
-      ];
+
     $form['breakpoints'] = [
       '#type' => 'fieldset',
       '#tree' => TRUE,
@@ -126,234 +129,83 @@ class DefaultEntityForm extends EntityForm {
       '#prefix' => '<div id="breakpoint-wrapper">',
       '#suffix' => '</div>',
     ];
-    $width = $default_entity->getBreakpoints();
-    if(!empty($width)) {
-      $form_state->set('field_deltas_pixel', range(0,count($width['pixel']) - 1));
-      $form_state->set('field_deltas_percentage', range(0,count($width['percentage']) - 1));
-    }
     
-    if ($form_state->get('field_deltas_pixel') == '') {
-      $form_state->set('field_deltas_pixel', range(0,0));
-    }
-    if ($form_state->get('field_deltas_percentage') == '') {
-      $form_state->set('field_deltas_percentage', range(0,0));
-    }
-    
-    $field_count1 = $form_state->get('field_deltas_pixel');
-    $field_count2 = $form_state->get('field_deltas_percentage');
+    $breakpoints_data = $advertising_entity->getBreakpoints();
+    $set_breakpoints = [];
 
-    foreach ($field_count1 as $delta) {
-      $form['breakpoints']['pixel'][$delta] = [
-        '#type' => 'fieldset',
-        '#title' => $this->t('PIXEL'),
-        '#tree' => TRUE,
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'pixel'],
-          ],
-        ],
-      ];
-      $form['breakpoints']['pixel'][$delta]['pixelwidth'] = [
-        '#type' => 'number',
-        '#title' => 'Width', 
-        '#min' => 1,
-        '#default_value' => $width['pixel'][$delta]['pixelwidth'],
-        '#description' => $this->t('Example: 350 px'),
-        '#min'=>1,
-        '#max'=> 1999,
-        '#step' => 1,
-        '#states' => [
-          'visible' => [
-          ':input[name="measurement"]' => ['value' => 'pixel'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'pixel'],
-          ],
-        ],
-        '#element_validate'=>[
-          [$class, 'validateNumber'],
-        ],
-      ];
-      ;
-      $form['breakpoints']['pixel'][$delta]['pixelheight'] = [
-        '#type' => 'number',
-        '#title' => 'Height', 
-        '#min' => 1,
-        '#default_value' => $width['pixel'][$delta]['pixelheight'],
-        '#description' => $this->t('Example: 750px'),
-        '#step' => 1,
-        '#min'=>1,
-        '#max'=> 1999,
-        '#states' => [
-        'visible' => [
-          ':input[name="measurement"]' => ['value' => 'pixel'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'pixel'],
-          ],
-        ],
-        '#element_validate'=>[
-          [$class, 'validateNumber'],
-        ],
-      ];
-      $form['breakpoints']['pixel'][$delta]['devicepixel']=[
-        '#type'=>'select',
-        '#options'=>[
-          'Desktop','Mobile','Tablet',
-        ],
-        '#empty_option'=>'Devices',
-        '#description'=> $this->t('Choose a device for your configuration'),
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'pixel'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'pixel'],
-          ],
-        ],
-        '#default_value'=> $width['pixel'][$delta]['devicepixel'],
-      ];
-      $form['breakpoints']['pixel'][$delta]['remove'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Remove'),
-        '#submit' => ['::addMoreRemove'],
-        '#ajax' => [
-          'callback' => '::addMoreRemoveCallback',
-          'wrapper' => 'breakpoint-wrapper',
-        ],
-        '#name' => 'remove_name_' . $delta,
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'pixel']
-          ]
-        ],
-      ];
+    for ($i = 0; $i < count($breakpoints_data['form']); $i++) { 
+      $set_breakpoints[] = $i;
     }
-    
-    $form['breakpoints']['pixel']['add'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Add'),
-      '#submit' => ['::AddMoreAddOne'],
-      '#ajax' => [
-        'callback' => '::addMorePixelCallback',
-        'wrapper' => 'breakpoint-wrapper',
-      ],
-      '#states'=>[
-        'visible'=>[
-          ':input[name="measurement"]'=>['value'=>'pixel'],
-        ],
-      ],
-    ];
-    foreach ($field_count2 as $delta) {
-      $form['breakpoints']['percentage'][$delta] = [
-        '#type' => 'fieldset',
-        '#title' => $this->t('PERCENTAGE'),
-        '#tree' => TRUE,
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'percentage'],
-          ],
-        ],
-      ];
-    $form['breakpoints']['percentage'][$delta]['percentagewidth'] = [
-      '#type' => 'number',
-      '#title' => 'Width', 
-      '#min' => 1,
-      '#default_value' => $width['percentage'][$delta]['percentagewidth'],
-      '#description' => $this->t('Example: 35%'),
-      '#min'=>1,
-      '#max'=> 99,
-      '#step' => 1,
-      '#states' => [
-        'visible' => [
-        ':input[name="measurement"]' => ['value' => 'percentage'],
-        ],
-        'required' => [
-        ':input[name="measurement"]' => ['value' => 'percentage'],
-        ],
-      ],
-      '#element_validate'=>[
-        [$class, 'validateNumber'],
-      ],
-    ]; 
-    $form['breakpoints']['percentage'][$delta]['percentageheight'] = [
-      '#type' => 'number',
-      '#title' => 'Height', 
-      '#min' => 1,
-      '#default_value' => $width['percentage'][$delta]['percentageheight'],
-      '#description' => $this->t('Example: 75%'),
-      '#step' => 1,
-      '#min'=>1,
-      '#max'=> 99,
-      '#states' => [
-      'visible' => [
-        ':input[name="measurement"]' => ['value' => 'percentage'],
-        ],
-        'required' => [
-        ':input[name="measurement"]' => ['value' => 'percentage'],
-        ],
-      ],
-      '#element_validate'=>[
-      [$class, 'validateNumber'],
-      ],
-    ]; 
-     $form['breakpoints']['percentage'][$delta]['devicepercentage']=[
-        '#type'=>'select',
-        '#options'=>[
-          'Desktop','Mobile','Tablet',
-        ],
-        '#empty_option'=>'Devices',
-        '#description'=> $this->t('Choose a device for your configuration'),
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'percentage'],
-          ],
-          'required' => [
-          ':input[name="measurement"]' => ['value' => 'percentage'],
-          ],
-        ],
-        '#default_value'=> $width['percentage'][$delta]['devicepercentage'],
-      ]; 
-       $form['breakpoints']['percentage'][$delta]['remove'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Remove'),
-        '#submit' => ['::addMoreRemove'],
-        '#ajax' => [
-          'callback' => '::addMoreRemoveCallback',
-          'wrapper' => 'breakpoint-wrapper',
-        ],
-        '#name' => 'remove_name_' . $delta,
-        '#states'=>[
-          'visible'=>[
-            ':input[name="measurement"]'=>['value'=>'percentage']
-          ]
-        ],
-      ];
+
+    if ($form_state->get('field_deltas') == '') {
+      $form_state->set('field_deltas', $set_breakpoints);
     }
-     $form['breakpoints']['percentage']['add'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Add'),
-      '#submit' => ['::AddMoreAddOne'],
-      '#ajax' => [
-        'callback' => '::addMorePercentageCallback',
-        'wrapper' => 'breakpoint-wrapper',
-      ],
-      '#states'=>[
-        'visible'=>[
-          ':input[name="measurement"]'=>['value'=>'percentage'],
-        ],
-      ],
-    ];
-     return $form;
-}
+
+    $field_count = $form_state->get('field_deltas');
+
+    foreach($field_count as $field) {
+
+      $form['breakpoints']['form'][$field] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('Option #' . $field ),
+        '#tree' => TRUE,
+      ];
   
+      $form['breakpoints']['form'][$field]['width'] = [
+        '#type' => 'number',
+        '#title' => 'Width',  
+        '#min' => 1,
+        '#required' => TRUE,
+        '#default_value' => $breakpoints_data['form'][$field]['width'],
+        '#description' => $this->t('The width in px.'),
+      ];
+  
+      $form['breakpoints']['form'][$field]['height'] = [
+        '#type' => 'number',
+        '#title' => 'height', 
+        '#min' => 1,
+        '#required' => TRUE,
+        '#default_value' => $breakpoints_data['form'][$field]['height'],
+        '#description' => $this->t('The height in px.'),
+      ];
+  
+      $form['breakpoints']['form'][$field]['remove'] = [
+        '#type' => 'submit',
+        '#value' => $this->t('Remove'),
+        '#submit' => ['::addMoreRemove'],
+        '#ajax' => [
+          'callback' => '::addMoreRemoveCallback',
+          'wrapper' => 'breakpoint-wrapper',
+        ],
+        '#name' => 'remove_name_' . $field,
+      ];
+
+    }
+
+    $form['breakpoints']['add'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Add'),
+      '#submit' => ['::AddMoreAddOne'],
+      '#ajax' => [
+        'callback' => '::AddMoreAddOneCallback',
+        'wrapper' => 'breakpoint-wrapper',
+      ],
+    ];
+
+    
+    return $form;
+
+    
+  }
+
   /**
    * function to add one field of breakpoint.
    * 
    * @param array $form
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
-	public function addMoreRemove(array &$form, FormStateInterface $form_state){
+	public function addMoreRemove(array &$form, FormStateInterface $form_state) {
+
 		// Get the triggering item
     $delta_remove = $form_state->getTriggeringElement()['#parents'][2];
     
@@ -372,7 +224,9 @@ class DefaultEntityForm extends EntityForm {
     // Rebuild the form
     $form_state->setRebuild();
     return $this->messenger()->addMessage($this->t('The BreakPoint has been remove'), 'warning');
+
 	}
+
   /**
    * ajax callback to add the new field to the render form.
    * 
@@ -382,74 +236,54 @@ class DefaultEntityForm extends EntityForm {
    * @return mixed
    */
   public function addMoreRemoveCallback(array &$form, FormStateInterface $form_state) {
+
 		return $form['breakpoints'];
+
 	}
+
   /**
    * @param array $form
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
 	public function AddMoreAddOne(array &$form, FormStateInterface $form_state) {
-    switch ($form_state->getValue('measurement')) {
-      case 'pixel':
-         // Store our form state
-          $field_deltas_array = $form_state->get('field_deltas_pixel');
-          
-          // check to see if there is more than one item in our array
-          if (count($field_deltas_array) > 0) {
-            // Add a new element to our array and set it to our highest value plus one
-            $field_deltas_array[] = max($field_deltas_array) + 1;
-          }
-          else {
-            // Set the new array element to 0
-            $field_deltas_array[] = 0;
-          }
-        
-          // Rebuild the field deltas values
-          $form_state->set('field_deltas_pixel', $field_deltas_array);
-        
-          // Rebuild the form
-          $form_state->setRebuild();
-        break;
-      case 'percentage':
-        // Store our form state
-          $field_deltas_array = $form_state->get('field_deltas_percentage');
-          
-          // check to see if there is more than one item in our array
-          if (count($field_deltas_array) > 0) {
-            // Add a new element to our array and set it to our highest value plus one
-            $field_deltas_array[] = max($field_deltas_array) + 1;
-          }
-          else {
-            // Set the new array element to 0
-            $field_deltas_array[] = 0;
-          }
-        
-          // Rebuild the field deltas values
-          $form_state->set('field_deltas_percentage', $field_deltas_array);
-        
-          // Rebuild the form
-          $form_state->setRebuild();
-        break;
-      
-      default:
-        echo 'An unxpected error has ocurred';
-        break;
+
+
+    // Store our form state
+    $field_deltas_array = $form_state->get('field_deltas');
+    
+    // check to see if there is more than one item in our array
+    if (count($field_deltas_array) > 0) {
+      // Add a new element to our array and set it to our highest value plus one
+      $field_deltas_array[] = max($field_deltas_array) + 1;
     }
+    else {
+      // Set the new array element to 0
+      $field_deltas_array[] = 0;
+    }
+  
+    // Rebuild the field deltas values
+    $form_state->set('field_deltas', $field_deltas_array);
+  
+    // Rebuild the form
+    $form_state->setRebuild();
+    
   }
+  
   /**
    * @param array $form
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *
    * @return mixed
    */
-  function addMorePixelCallback(array &$form, FormStateInterface $form_state) {
-    return $form['breakpoints']['pixel'];
+  function AddMoreAddOneCallback(array &$form, FormStateInterface $form_state) {
+    return $form['breakpoints'];
   }
-    function addMorePercentageCallback(array &$form, FormStateInterface $form_state) {
-    return $form['breakpoints']['percentage'];
-  }
+
   //Functions to validate fields of form
- 
+
+  /**
+   * {@inheritdoc}
+   */
   public static function validateNumber(&$element, FormStateInterface $form_state, &$complete_form) {
     // var_dump($element); die();
     $value = $element['#value'];
@@ -489,6 +323,10 @@ class DefaultEntityForm extends EntityForm {
       $form_state->setError($element, t('Please. Write only data type string. Minimum 5 characters and Maximum 25'));
     }
   }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function validateIdpublicity(&$element, FormStateInterface $form_state, &$complete_form){
     $value = $element['#value'];
     $value = strtolower($value);
@@ -496,43 +334,43 @@ class DefaultEntityForm extends EntityForm {
       $form_state->setError($element, t('Please. Write only data type string. Three Numbers and three characters (WXY457)'));
     }
   }  
+
   /**
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-    // var_dump($form_state->getValue('measurement'));die();
     
-    $default_entity = $this->entity;
-    switch ($form_state->getValue('measurement')) {
-      case 'pixel':
-        $value_breakpoints= $form_state->getValue('breakpoints', 'pixel');
-        $default_entity->setBreakpoints($value_breakpoints);
-        break;
-       case 'percentage':
-        $value_breakpoints= $form_state->getValue('breakpoints', 'percentage');
-        $default_entity->setBreakpoints($value_breakpoints);
-        break;
-      default:
-        echo 'An unexpected error has ocrurred';
-        break;
+    $advertising_entity = $this->entity;
+    $form_values = $form_state->getValue('breakpoints', 'form');
+    $count = 0;
+    $value_breakpoints = $form_values;
+
+    foreach ($form_values as $key => $value) {
+      if (array_key_exists($key, $form_values['form'])) {
+        $value_breakpoints['form'][$count]['width'] = $form_values['form'][$key]['width'];
+        $value_breakpoints['form'][$count]['height'] = $form_values['form'][$key]['height'];
+        $count++;
+      }     
     }
-    $place = $form_state->getValue('render_section');
-    $this->checkStatusEntity($place);
-    $status = $default_entity->save();
+    
+    $advertising_entity->setBreakpoints($value_breakpoints);
+    $status = $advertising_entity->save();
     
     switch ($status) {
       case SAVED_NEW:
         $this->messenger()->addMessage($this->t('Created the %label Advertising entity.', [
-          '%label' => $default_entity->label(),
+          '%label' => $advertising_entity->label(),
         ]));
         break;
+
       default:
-        $this->messenger()->addMessage($this->t('Saved the %label Custom Publicity Entity.', [
-          '%label' => $default_entity->label(),
+        $this->messenger()->addMessage($this->t('Saved the %label Advertising entity.', [
+          '%label' => $advertising_entity->label(),
         ]));
     }
-    $form_state->setRedirectUrl($default_entity->toUrl('collection'));
+    $form_state->setRedirectUrl($advertising_entity->toUrl('collection'));
   }
+
   /**
    * Get names for all taxonomy vocabularies.
    * 
@@ -551,6 +389,7 @@ class DefaultEntityForm extends EntityForm {
     }
     return $names;
   }
+
   /**
    * Get names for all content types.
    * 
@@ -570,32 +409,5 @@ class DefaultEntityForm extends EntityForm {
     }
     return $names;
   }
-  /**
-   * Check if a node is published or not to render the AD.
-   * 
-   * @param $machine_name
-   *  the name of the content type to load his nodes.
-   * 
-   * @return object \Drupal::messenger
-   */
-  private function checkStatusEntity($machine_name) {
-    
-    if(array_key_exists($machine_name, $this->content_type_get_names())) {
-      
-      $nids = \Drupal::entityQuery('node')
-        ->condition('status', 1)
-        ->condition('type', $machine_name)
-        ->execute();
-      $nodes = $this->entity_type
-        ->getStorage('node')
-        ->loadMultiple($nids);
-      
-      foreach ($nodes as $node) {
-        $data_nodes[] = $node->label();
-        $message = $this->t('In the following nodes the publication will be rendered: ' . implode(',', $data_nodes));
-      return $this->messenger()->addMessage($message);
-      }
-      
-    }
-  }
+
 }
